@@ -4,12 +4,14 @@ import 'package:shop/provider/products_provider.dart';
 import 'package:shop/widgets/product_item.dart';
 
 class ProductsGrid extends StatelessWidget {
-  const ProductsGrid({Key? key}) : super(key: key);
+  final bool isFav;
+
+  const ProductsGrid({Key? key, required this.isFav}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final productsDate = Provider.of<ProductsProvider>(context);
-    final products = productsDate.items;
+    final products = (isFav)? productsDate.favouriteItems : productsDate.items;
     return GridView.builder(
         padding: const EdgeInsets.all(10),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -19,13 +21,8 @@ class ProductsGrid extends StatelessWidget {
             mainAxisSpacing: 10),
         itemCount: products.length,
         itemBuilder: (context, index) => ChangeNotifierProvider.value(
-          // create: (BuildContext context)  => products[index],
-          value: products[index],
-          child: ProductItem(
-              // id: products[index].id,
-    //               // title: products[index].title,
-    //               // imageUrl: products[index].imageUrl
-                  ),
-        ));
+              value: products[index],
+              child: const ProductItem(),
+            ));
   }
 }
