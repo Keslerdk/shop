@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop/provider/cart.dart';
-import 'package:shop/provider/products_provider.dart';
 import 'package:shop/screens/cart_screen.dart';
+import 'package:shop/widgets/app_drawer.dart';
 import 'package:shop/widgets/badge.dart';
 import 'package:shop/widgets/products_grid.dart';
 
 enum FilterOptions { favourites, all }
 
 class ProductOverviewScreen extends StatefulWidget {
+  static const routeName = "/product_screen";
   const ProductOverviewScreen({Key? key}) : super(key: key);
 
   @override
@@ -20,7 +21,6 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cartContainer = Provider.of<Cart>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: const Text("MyShop"),
@@ -58,6 +58,7 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
           ),
         ],
       ),
+      drawer: const AppDrawer(),
       body: ProductsGrid(
         isFav: _showFavourite,
       ),
