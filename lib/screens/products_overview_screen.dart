@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop/provider/cart.dart';
 import 'package:shop/provider/products_provider.dart';
+import 'package:shop/screens/cart_screen.dart';
 import 'package:shop/widgets/badge.dart';
 import 'package:shop/widgets/products_grid.dart';
 
@@ -30,7 +31,7 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
                 value: cartData.itemCount.toString(),
                 color: Theme.of(context).colorScheme.secondary);},
             child:  IconButton(
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, CartScreen.routeName),
                 icon: const Icon(Icons.shopping_cart),
               )
           ),
