@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shop/screens/order_screen.dart';
-import 'package:shop/screens/products_overview_screen.dart';
+import 'package:shop/screens/user_products_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -34,6 +34,12 @@ class AppDrawer extends StatelessWidget {
                   leading: const Icon(Icons.card_giftcard),
                   onTap: () => Navigator.of(context)
                       .pushReplacementNamed(OrderScreen.routeName),
+                ),
+                ListTile(
+                  title: const Text("Manage Products"),
+                  leading: const Icon(Icons.edit),
+                  onTap: () => Navigator.of(context)
+                      .pushReplacementNamed(UserProductsScreen.routeName),
                 )
               ],
             ))

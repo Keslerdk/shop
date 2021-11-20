@@ -9,11 +9,13 @@ class CartTile extends StatelessWidget {
   final String id;
   final String productId;
 
-  const CartTile({Key? key,
-    required this.price,
-    required this.quantity,
-    required this.title,
-    required this.id, required this.productId})
+  const CartTile(
+      {Key? key,
+      required this.price,
+      required this.quantity,
+      required this.title,
+      required this.id,
+      required this.productId})
       : super(key: key);
 
   @override
@@ -27,23 +29,18 @@ class CartTile extends StatelessWidget {
               padding: const EdgeInsets.all(3.0),
               child: FittedBox(
                   child: Text(
-                    "\$$price",
-                  )),
+                "\$$price",
+              )),
             ),
             foregroundColor: Colors.white,
-            backgroundColor: Theme
-                .of(context)
-                .colorScheme
-                .primary,
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
           title: Text(title),
           subtitle: Text("Total: \$${price * quantity}"),
           trailing: Text("${quantity}x"),
         ),
         background: Container(
-          color: Theme
-              .of(context)
-              .errorColor,
+          color: Theme.of(context).errorColor,
           child: const Align(
               alignment: Alignment.centerRight,
               child: Padding(
@@ -58,6 +55,23 @@ class CartTile extends StatelessWidget {
         direction: DismissDirection.endToStart,
         onDismissed: (direction) {
           Provider.of<Cart>(context, listen: false).removeItem(productId);
+        },
+        confirmDismiss: (direction) {
+          return showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                    title: const Text("Are you sure?"),
+                    content: const Text(
+                        "Do you want to remove the item from the cart? "),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text("Yes")),
+                      TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text("No"))
+                    ],
+                  ));
         },
       ),
     );
