@@ -17,7 +17,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _imageUrlController = TextEditingController();
   final _imageUrlFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
-  var _edittedProduct =
+  var _editedProduct =
       Product(id: '', title: '', description: '', price: 0, imageUrl: '');
 
   @override
@@ -34,11 +34,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   void _saveForm() {
     if (_form.currentState!.validate()) _form.currentState!.save();
-
-    print(_edittedProduct.title);
-    print(_edittedProduct.description);
-    print(_edittedProduct.price);
-    print(_edittedProduct.imageUrl);
   }
 
   @override
@@ -73,12 +68,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   }
                 },
                 onSaved: (value) {
-                  _edittedProduct = Product(
+                  _editedProduct = Product(
                       id: "",
                       title: value!,
-                      description: _edittedProduct.description,
-                      price: _edittedProduct.price,
-                      imageUrl: _edittedProduct.imageUrl);
+                      description: _editedProduct.description,
+                      price: _editedProduct.price,
+                      imageUrl: _editedProduct.imageUrl);
                 },
               ),
               TextFormField(
@@ -99,12 +94,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   return null;
                 },
                 onSaved: (value) {
-                  _edittedProduct = Product(
+                  _editedProduct = Product(
                       id: "",
-                      title: _edittedProduct.title,
-                      description: _edittedProduct.description,
+                      title: _editedProduct.title,
+                      description: _editedProduct.description,
                       price: double.parse(value!),
-                      imageUrl: _edittedProduct.imageUrl);
+                      imageUrl: _editedProduct.imageUrl);
                 },
               ),
               TextFormField(
@@ -117,12 +112,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   return null;
                 },
                 onSaved: (value) {
-                  _edittedProduct = Product(
+                  _editedProduct = Product(
                       id: "",
-                      title: _edittedProduct.title,
+                      title: _editedProduct.title,
                       description: value!,
-                      price: _edittedProduct.price,
-                      imageUrl: _edittedProduct.imageUrl);
+                      price: _editedProduct.price,
+                      imageUrl: _editedProduct.imageUrl);
                 },
               ),
               Row(
@@ -152,11 +147,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         _saveForm();
                       },
                       onSaved: (value) {
-                        _edittedProduct = Product(
+                        _editedProduct = Product(
                             id: "",
-                            title: _edittedProduct.title,
-                            description: _edittedProduct.description,
-                            price: _edittedProduct.price,
+                            title: _editedProduct.title,
+                            description: _editedProduct.description,
+                            price: _editedProduct.price,
                             imageUrl: value!);
                       },
                       validator: (value) {
