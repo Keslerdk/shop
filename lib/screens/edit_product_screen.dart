@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shop/provider/product.dart';
+import 'package:shop/provider/products_provider.dart';
 
 class EditProductScreen extends StatefulWidget {
   static const routeName = "/edit_product_screen";
@@ -19,6 +21,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _form = GlobalKey<FormState>();
   var _editedProduct =
       Product(id: '', title: '', description: '', price: 0, imageUrl: '');
+  bool _isInit = true;
+  var _initValues = {
+    "title": "",
+    "description": "",
+    "price": '',
+    "imageUrl": "",
+  };
 
   @override
   void initState() {
@@ -32,8 +41,36 @@ class _EditProductScreenState extends State<EditProductScreen> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      final id = ModalRoute.of(context)!.settings.arguments! as String;
+      _editedProduct =
+          Provider.of<ProductsProvider>(context, listen: false).findById(id);
+      _initValues = {
+        "title": _editedProduct.title,
+        "description": _editedProduct.description,
+        "price": _editedProduct.price.toString(),
+        "imageUrl": '',
+      };
+      _imageUrlController.text = _editedProduct.imageUrl;
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
+
   void _saveForm() {
-    if (_form.currentState!.validate()) _form.currentState!.save();
+    if (_form.currentState!.validate()) {
+      _form.currentState!.save();
+      if (_editedProduct.id != '') {
+        Provider.of<ProductsProvider>(context, listen: false)
+            .updateProduct(_editedProduct.id, _editedProduct);
+      } else {
+        Provider.of<ProductsProvider>(context, listen: false)
+            .addProduct(_editedProduct);
+      }
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -52,6 +89,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           child: ListView(
             children: [
               TextFormField(
+                initialValue: _initValues["title"],
                 decoration: InputDecoration(
                     label: const Text("Title"),
                     errorStyle:
@@ -69,14 +107,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
                 onSaved: (value) {
                   _editedProduct = Product(
-                      id: "",
+                      id: _editedProduct.id,
                       title: value!,
                       description: _editedProduct.description,
                       price: _editedProduct.price,
-                      imageUrl: _editedProduct.imageUrl);
+                      imageUrl: _editedProduct.imageUrl,
+                      isFavourite: _editedProduct.isFavourite);
                 },
               ),
               TextFormField(
+                initialValue: _initValues["price"],
                 decoration: const InputDecoration(label: Text("Price")),
                 textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.number,
@@ -95,14 +135,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
                 onSaved: (value) {
                   _editedProduct = Product(
-                      id: "",
+                      id: _editedProduct.id,
                       title: _editedProduct.title,
                       description: _editedProduct.description,
                       price: double.parse(value!),
-                      imageUrl: _editedProduct.imageUrl);
+                      imageUrl: _editedProduct.imageUrl,
+                      isFavourite: _editedProduct.isFavourite);
                 },
               ),
               TextFormField(
+                initialValue: _initValues["description"],
                 decoration: const InputDecoration(label: Text("Description")),
                 maxLines: 3,
                 keyboardType: TextInputType.multiline,
@@ -113,11 +155,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
                 onSaved: (value) {
                   _editedProduct = Product(
-                      id: "",
+                      id: _editedProduct.id,
                       title: _editedProduct.title,
                       description: value!,
                       price: _editedProduct.price,
-                      imageUrl: _editedProduct.imageUrl);
+                      imageUrl: _editedProduct.imageUrl,
+                      isFavourite: _editedProduct.isFavourite);
                 },
               ),
               Row(
@@ -148,11 +191,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       },
                       onSaved: (value) {
                         _editedProduct = Product(
-                            id: "",
+                            id: _editedProduct.id,
                             title: _editedProduct.title,
                             description: _editedProduct.description,
                             price: _editedProduct.price,
-                            imageUrl: value!);
+                            imageUrl: value!,
+                            isFavourite: _editedProduct.isFavourite);
                       },
                       validator: (value) {
                         if (value!.isEmpty) return "This field can't be empty!";

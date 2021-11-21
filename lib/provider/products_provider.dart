@@ -44,15 +44,28 @@ class ProductsProvider with ChangeNotifier {
   }
 
   List<Product> get favouriteItems {
-    return [..._items.where((product) => product.isFavourite==true)];
+    return [..._items.where((product) => product.isFavourite == true)];
   }
 
   Product findById(String id) {
-    return _items.firstWhere((product) => product.id==id);
+    return _items.firstWhere((product) => product.id == id);
   }
 
-  void addProduct() {
-    // _items.add(value);
+  void addProduct(Product product) {
+    final newProduct = Product(id: DateTime.now().toString(),
+        imageUrl: product.imageUrl,
+        price: product.price,
+        description: product.description,
+        title: product.title,);
+    _items.add(newProduct);
     notifyListeners();
+  }
+
+  void updateProduct(String id, Product newProduct) {
+    final productIndex = _items.indexWhere((prod) => prod.id==id);
+    if (productIndex>=0) {
+      _items[productIndex] = newProduct;
+      notifyListeners();
+    }
   }
 }
