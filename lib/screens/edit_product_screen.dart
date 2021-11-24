@@ -20,8 +20,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _imageUrlFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
   var _editedProduct =
-      Product(id: '', title: '', description: '', price: 0, imageUrl: '');
+  Product(id: '',
+      title: '',
+      description: '',
+      price: 0,
+      imageUrl: '');
   bool _isInit = true;
+  bool _isLoading = false;
   var _initValues = {
     "title": "",
     "description": "",
@@ -44,8 +49,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
   @override
   void didChangeDependencies() {
     if (_isInit) {
-      if (ModalRoute.of(context)!.settings.arguments!=null) {
-        final id = ModalRoute.of(context)!.settings.arguments! as String;
+      if (ModalRoute
+          .of(context)!
+          .settings
+          .arguments != null) {
+        final id = ModalRoute
+            .of(context)!
+            .settings
+            .arguments! as String;
         _editedProduct =
             Provider.of<ProductsProvider>(context, listen: false).findById(id);
         _initValues = {
@@ -57,21 +68,50 @@ class _EditProductScreenState extends State<EditProductScreen> {
         _imageUrlController.text = _editedProduct.imageUrl;
       }
       _isInit = false;
-      }
+    }
     super.didChangeDependencies();
   }
 
   void _saveForm() {
     if (_form.currentState!.validate()) {
       _form.currentState!.save();
+      setState(() {
+        _isLoading = true;
+      });
       if (_editedProduct.id != '') {
         Provider.of<ProductsProvider>(context, listen: false)
             .updateProduct(_editedProduct.id, _editedProduct);
+        Navigator.of(context).pop();
+        setState(() {
+          _isLoading = false;
+        });
       } else {
         Provider.of<ProductsProvider>(context, listen: false)
-            .addProduct(_editedProduct);
+            .addProduct(_editedProduct)
+            .catchError((error) async {
+         await showDialog(
+              context: context,
+              builder: (ctx) =>
+                  AlertDialog(
+                    title: const Text("An error occurred!"),
+                    content: const Text("something went wrong."),
+                    actions: [
+                      TextButton(
+                          onPressed: ()
+                          {
+                            Navigator.of(ctx).pop();
+                            // Navigator.pop(ctx);
+                          },
+                          child: const Text("Ok"))
+                    ],
+                  ));
+        }).then((_) {
+          setState(() {
+            _isLoading = false;
+          });
+          Navigator.of(context).pop();
+        });
       }
-      Navigator.of(context).pop();
     }
   }
 
@@ -84,7 +124,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
           IconButton(onPressed: () => _saveForm(), icon: const Icon(Icons.save))
         ],
       ),
-      body: Padding(
+      body: _isLoading
+          ? const Center(
+        child: CircularProgressIndicator(),
+      )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _form,
@@ -94,8 +138,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 initialValue: _initValues["title"],
                 decoration: InputDecoration(
                     label: const Text("Title"),
-                    errorStyle:
-                        Theme.of(context).inputDecorationTheme.errorStyle),
+                    errorStyle: Theme
+                        .of(context)
+                        .inputDecorationTheme
+                        .errorStyle),
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (_) {
                   FocusScope.of(context).requestFocus(_priceFocusNode);
@@ -124,7 +170,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 keyboardType: TextInputType.number,
                 focusNode: _priceFocusNode,
                 onFieldSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_descriptionFocusNode);
+                  FocusScope.of(context)
+                      .requestFocus(_descriptionFocusNode);
                 },
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -132,7 +179,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   }
 
                   if (double.tryParse(value) == null ||
-                      double.parse(value) <= 0) return "Enter valid number";
+                      double.parse(value) <= 0)
+                    return "Enter valid number";
                   return null;
                 },
                 onSaved: (value) {
@@ -147,7 +195,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
               ),
               TextFormField(
                 initialValue: _initValues["description"],
-                decoration: const InputDecoration(label: Text("Description")),
+                decoration:
+                const InputDecoration(label: Text("Description")),
                 maxLines: 3,
                 keyboardType: TextInputType.multiline,
                 focusNode: _descriptionFocusNode,
@@ -171,19 +220,19 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     width: 100,
                     height: 100,
                     margin: const EdgeInsets.only(top: 10, right: 8),
-                    decoration:
-                        BoxDecoration(border: Border.all(color: Colors.grey)),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey)),
                     child: _imageUrlController.text.isNotEmpty
                         ? Image.network(
-                            _imageUrlController.text,
-                            fit: BoxFit.fill,
-                          )
+                      _imageUrlController.text,
+                      fit: BoxFit.fill,
+                    )
                         : Container(),
                   ),
                   Expanded(
                     child: TextFormField(
                       decoration:
-                          const InputDecoration(label: Text("Image Url")),
+                      const InputDecoration(label: Text("Image Url")),
                       keyboardType: TextInputType.url,
                       textInputAction: TextInputAction.done,
                       controller: _imageUrlController,
@@ -201,11 +250,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                             isFavourite: _editedProduct.isFavourite);
                       },
                       validator: (value) {
-                        if (value!.isEmpty) return "This field can't be empty!";
+                        if (value!.isEmpty)
+                          return "This field can't be empty!";
                         if (!value.startsWith("https") &&
                             !value.startsWith("http") &&
                             !value.endsWith(".png") &&
-                            !value.endsWith(".jpg")) return "Enter valid url!";
+                            !value.endsWith(".jpg"))
+                          return "Enter valid url!";
                         return null;
                       },
                     ),
