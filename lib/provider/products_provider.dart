@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:shop/provider/product.dart';
+import 'package:http/http.dart' as http;
 
 class ProductsProvider with ChangeNotifier {
   final List<Product> _items = [
@@ -9,7 +12,7 @@ class ProductsProvider with ChangeNotifier {
       description: 'A red shirt - it is pretty red!',
       price: 29.99,
       imageUrl:
-      'https://cdn.pixabay.com/photo/2016/10/02/22/17/red-t-shirt-1710578_1280.jpg',
+          'https://cdn.pixabay.com/photo/2016/10/02/22/17/red-t-shirt-1710578_1280.jpg',
     ),
     Product(
       id: 'p2',
@@ -17,7 +20,7 @@ class ProductsProvider with ChangeNotifier {
       description: 'A nice pair of trousers.',
       price: 59.99,
       imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Trousers%2C_dress_%28AM_1960.022-8%29.jpg/512px-Trousers%2C_dress_%28AM_1960.022-8%29.jpg',
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Trousers%2C_dress_%28AM_1960.022-8%29.jpg/512px-Trousers%2C_dress_%28AM_1960.022-8%29.jpg',
     ),
     Product(
       id: 'p3',
@@ -25,7 +28,7 @@ class ProductsProvider with ChangeNotifier {
       description: 'Warm and cozy - exactly what you need for the winter.',
       price: 19.99,
       imageUrl:
-      'https://live.staticflickr.com/4043/4438260868_cc79b3369d_z.jpg',
+          'https://live.staticflickr.com/4043/4438260868_cc79b3369d_z.jpg',
     ),
     Product(
       id: 'p4',
@@ -33,7 +36,7 @@ class ProductsProvider with ChangeNotifier {
       description: 'Prepare any meal you want.',
       price: 49.99,
       imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
     ),
   ];
 
@@ -52,25 +55,40 @@ class ProductsProvider with ChangeNotifier {
   }
 
   void addProduct(Product product) {
-    final newProduct = Product(id: DateTime.now().toString(),
+    const url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products.json";
+    http
+        .post(Uri.parse(url),
+            body: json.encode({
+              "title": product.title,
+              "price": product.price,
+              "description": product.description,
+              "imageUrl": product.imageUrl,
+              "isFavourite": product.isFavourite
+            }))
+        .then((response) {
+      final newProduct = Product(
+        id: json.decode(response.body)["name"],
         imageUrl: product.imageUrl,
         price: product.price,
         description: product.description,
-        title: product.title,);
-    _items.add(newProduct);
-    notifyListeners();
+        title: product.title,
+      );
+      _items.add(newProduct);
+      notifyListeners();
+    });
   }
 
   void updateProduct(String id, Product newProduct) {
-    final productIndex = _items.indexWhere((prod) => prod.id==id);
-    if (productIndex>=0) {
+    final productIndex = _items.indexWhere((prod) => prod.id == id);
+    if (productIndex >= 0) {
       _items[productIndex] = newProduct;
       notifyListeners();
     }
   }
 
   void deleteProduct(String id) {
-    _items.removeWhere((prod) => prod.id==id);
+    _items.removeWhere((prod) => prod.id == id);
     notifyListeners();
   }
 }
