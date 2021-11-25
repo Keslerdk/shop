@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop/provider/cart.dart';
+import 'package:shop/provider/products_provider.dart';
 import 'package:shop/screens/cart_screen.dart';
 import 'package:shop/widgets/app_drawer.dart';
 import 'package:shop/widgets/badge.dart';
@@ -10,6 +11,7 @@ enum FilterOptions { favourites, all }
 
 class ProductOverviewScreen extends StatefulWidget {
   static const routeName = "/product_screen";
+
   const ProductOverviewScreen({Key? key}) : super(key: key);
 
   @override
@@ -18,6 +20,19 @@ class ProductOverviewScreen extends StatefulWidget {
 
 class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
   var _showFavourite = false;
+  bool _isInit = false;
+  bool _isLoading = true;
+
+  @override
+  void didChangeDependencies() {
+    if (!_isInit) {
+      Provider.of<ProductsProvider>(context)
+          .fetchAndSetData()
+          .then((_) => _isLoading = false);
+    }
+    _isInit = true;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,15 +41,17 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
         title: const Text("MyShop"),
         actions: [
           Consumer<Cart>(
-            builder: (_, cartData, ch ) { return  Badge(
-                child: ch!,
-                value: cartData.itemCount.toString(),
-                color: Theme.of(context).colorScheme.secondary);},
-            child:  IconButton(
-                onPressed: () => Navigator.pushNamed(context, CartScreen.routeName),
+              builder: (_, cartData, ch) {
+                return Badge(
+                    child: ch!,
+                    value: cartData.itemCount.toString(),
+                    color: Theme.of(context).colorScheme.secondary);
+              },
+              child: IconButton(
+                onPressed: () =>
+                    Navigator.pushNamed(context, CartScreen.routeName),
                 icon: const Icon(Icons.shopping_cart),
-              )
-          ),
+              )),
           PopupMenuButton(
             itemBuilder: (_) => [
               const PopupMenuItem(
@@ -59,9 +76,13 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
         ],
       ),
       drawer: const AppDrawer(),
-      body: ProductsGrid(
-        isFav: _showFavourite,
-      ),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : ProductsGrid(
+              isFav: _showFavourite,
+            ),
     );
   }
 }
