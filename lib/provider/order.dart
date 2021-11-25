@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import 'package:shop/provider/cart.dart';
+import 'package:http/http.dart' as http;
 
 class OrderItem {
   final String id;
@@ -7,24 +11,76 @@ class OrderItem {
   final List<CartItem> products;
   final DateTime dateTime;
 
-  OrderItem({required this.id,
-    required this.amount,
-    required this.products,
-    required this.dateTime});
+  OrderItem(
+      {required this.id,
+      required this.amount,
+      required this.products,
+      required this.dateTime});
 }
 
 class Orders with ChangeNotifier {
- final  List<OrderItem> _orders = [];
+  List<OrderItem> _orders = [];
 
   List<OrderItem> get orders {
     return [..._orders];
   }
 
-  void addOrder(List<CartItem> cartProduct, double total) {
-    _orders.insert(0, OrderItem(id: DateTime.now().toString(),
-        amount: total,
-        products: cartProduct,
-        dateTime: DateTime.now()));
-    notifyListeners();
+  Future<void> addOrder(List<CartItem> cartProduct, double total) async {
+    const url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json";
+    final timaeStamp = DateTime.now();
+    try {
+      final response = await http.post(Uri.parse(url),
+          body: json.encode({
+            "amount": total,
+            "dateTime": timaeStamp.toIso8601String(),
+            "products": cartProduct
+                .map((cp) => {
+                      "id": cp.id,
+                      "title": cp.title,
+                      "quantity": cp.quantity,
+                      "price": cp.price
+                    })
+                .toList()
+          }));
+
+      _orders.insert(
+          0,
+          OrderItem(
+              id: json.decode((response.body))['name'],
+              amount: total,
+              products: cartProduct,
+              dateTime: timaeStamp));
+      notifyListeners();
+    } catch (error) {}
+  }
+
+  Future<void> fetchAndSetOrders() async {
+    const url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json";
+    try {
+      final response = await http.get(Uri.parse(url));
+      final List<OrderItem> loadedOrders = [];
+      final extractedOrders =
+          json.decode(response.body) as Map<String, dynamic>;
+      if (extractedOrders.isEmpty) return;
+      extractedOrders.forEach((orderId, orderData) {
+        loadedOrders.insert(0, OrderItem(
+          amount: orderData["amount"],
+          dateTime: DateTime.parse(orderData["dateTime"]),
+          products: (orderData["products"] as List<dynamic>)
+              .map((cp) => CartItem(
+                  price: cp["price"],
+                  id: cp["id"],
+                  quantity: cp["quantity"],
+                  title: cp["title"]))
+              .toList(),
+          id: orderId,
+        ));
+      });
+      _orders = loadedOrders;
+      notifyListeners();
+    } catch (error) {
+    }
   }
 }

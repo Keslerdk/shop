@@ -64,7 +64,7 @@ class ProductsProvider with ChangeNotifier {
               "price": product.price,
               "description": product.description,
               "imageUrl": product.imageUrl,
-              "isFavourite": product.isFavourite
+              // "isFavourite": product.isFavourite
             }))
         .then((response) {
       final newProduct = Product(
@@ -122,6 +122,7 @@ class ProductsProvider with ChangeNotifier {
     try {
       final response = await http.get(Uri.parse(url));
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      if (extractedData.isEmpty) return;
       List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
         loadedProducts.add(Product(
@@ -129,7 +130,9 @@ class ProductsProvider with ChangeNotifier {
             title: prodData["title"],
             price: prodData["price"],
             imageUrl: prodData["imageUrl"],
-            description: prodData["description"]));
+            description: prodData["description"],
+          isFavourite: prodData["isFavourite"]
+        ));
       });
       _items = loadedProducts;
       notifyListeners();

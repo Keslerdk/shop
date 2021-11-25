@@ -1,6 +1,9 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:convert';
 
-class Product with ChangeNotifier{
+import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+
+class Product with ChangeNotifier {
   final String id;
   final String title;
   final String description;
@@ -16,8 +19,23 @@ class Product with ChangeNotifier{
       required this.imageUrl,
       this.isFavourite = false});
 
-  void toggleFavouriteStatus() {
+  void _setFavBack(bool value) {
+    isFavourite = value;
+    notifyListeners();
+  }
+
+  Future<void> toggleFavouriteStatus() async {
+    final oldValue = isFavourite;
     isFavourite = !isFavourite;
     notifyListeners();
+    final url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products/$id.json";
+    try {
+      final response = await http.patch(Uri.parse(url),
+          body: json.encode({"isFavourite": isFavourite}));
+      if (response.statusCode >= 400) _setFavBack(oldValue);
+    } catch (error) {
+      _setFavBack(oldValue);
+    }
   }
 }
