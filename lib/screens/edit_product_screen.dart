@@ -72,21 +72,21 @@ class _EditProductScreenState extends State<EditProductScreen> {
     super.didChangeDependencies();
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     if (_form.currentState!.validate()) {
       _form.currentState!.save();
       setState(() {
         _isLoading = true;
       });
       if (_editedProduct.id != '') {
-        Provider.of<ProductsProvider>(context, listen: false)
+        await Provider.of<ProductsProvider>(context, listen: false)
             .updateProduct(_editedProduct.id, _editedProduct);
-        Navigator.of(context).pop();
-        setState(() {
-          _isLoading = false;
-        });
+        // Navigator.of(context).pop();
+        // setState(() {
+        //   _isLoading = false;
+        // });
       } else {
-        Provider.of<ProductsProvider>(context, listen: false)
+        await Provider.of<ProductsProvider>(context, listen: false)
             .addProduct(_editedProduct)
             .catchError((error) async {
          await showDialog(
@@ -105,13 +105,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           child: const Text("Ok"))
                     ],
                   ));
-        }).then((_) {
-          setState(() {
-            _isLoading = false;
-          });
-          Navigator.of(context).pop();
         });
       }
+      setState(() {
+        _isLoading = false;
+      });
+      Navigator.of(context).pop();
     }
   }
 
