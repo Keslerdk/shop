@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:shop/models/http_exceptions.dart';
 
 class Auth with ChangeNotifier {
   late String _token;
@@ -20,9 +21,18 @@ class Auth with ChangeNotifier {
       String email, String password, String segment) async {
     final url =
         "https://identitytoolkit.googleapis.com/v1/accounts:$segment?key=AIzaSyAR1FHXUs6CvpXT621nHw7NYbVJsdnTOIc";
-    final response = await http.post(Uri.parse(url),
-        body: json.encode(
-            {"email": email, "password": password, "returnSecureToken": true}));
-    print(response.body);
+
+    try {
+      final response = await http.post(Uri.parse(url),
+          body: json.encode(
+              {"email": email, "password": password, "returnSecureToken": true}));
+      final responseData = json.decode(response.body) as Map<String, dynamic>;
+      if (responseData["error"] != null) {
+        throw HttpExceptions(message: responseData["error"]["message"]);
+      }
+      print(response.body);
+    } catch (error) {
+      rethrow;
+    }
   }
 }
