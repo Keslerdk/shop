@@ -5,7 +5,7 @@ import 'package:shop/provider/product.dart';
 import 'package:http/http.dart' as http;
 
 class ProductsProvider with ChangeNotifier {
-  List<Product> _items = [
+  List<Product> localItems = [
     // Product(
     //   id: 'p1',
     //   title: 'Red Shirt',
@@ -40,23 +40,29 @@ class ProductsProvider with ChangeNotifier {
     // ),
   ];
 
+  String? authToken;
+
+  ProductsProvider.update({required this.localItems, required this.authToken});
+
+  ProductsProvider();
+
   var isShowFavouritesOnly = false;
 
   List<Product> get items {
-    return [..._items];
+    return [...localItems];
   }
 
   List<Product> get favouriteItems {
-    return [..._items.where((product) => product.isFavourite == true)];
+    return [...localItems.where((product) => product.isFavourite == true)];
   }
 
   Product findById(String id) {
-    return _items.firstWhere((product) => product.id == id);
+    return localItems.firstWhere((product) => product.id == id);
   }
 
   Future<void> addProduct(Product product) {
-    const url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products.json";
+    final url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products.json?auth=$authToken";
     return http
         .post(Uri.parse(url),
             body: json.encode({
@@ -74,7 +80,7 @@ class ProductsProvider with ChangeNotifier {
         description: product.description,
         title: product.title,
       );
-      _items.add(newProduct);
+      localItems.add(newProduct);
       notifyListeners();
     }).catchError((error) {
       throw error;
@@ -82,10 +88,10 @@ class ProductsProvider with ChangeNotifier {
   }
 
   Future<void> updateProduct(String id, Product newProduct) async {
-    final productIndex = _items.indexWhere((prod) => prod.id == id);
+    final productIndex = localItems.indexWhere((prod) => prod.id == id);
     if (productIndex >= 0) {
       String url =
-          "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products/$id.json";
+          "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken";
       await http.patch(Uri.parse(url),
           body: json.encode({
             "title": newProduct.title,
@@ -93,23 +99,23 @@ class ProductsProvider with ChangeNotifier {
             "price": newProduct.price,
             "imageUrl": newProduct.imageUrl
           }));
-      _items[productIndex] = newProduct;
+      localItems[productIndex] = newProduct;
       notifyListeners();
     }
   }
 
   Future<void> deleteProduct(String id) async {
     String url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products/$id.json";
-    final existingIndex = _items.indexWhere((prod) => prod.id == id);
-    Product? existingProduct = _items[existingIndex];
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken";
+    final existingIndex = localItems.indexWhere((prod) => prod.id == id);
+    Product? existingProduct = localItems[existingIndex];
 
-    _items.removeWhere((prod) => prod.id == id);
+    localItems.removeWhere((prod) => prod.id == id);
     notifyListeners();
 
     final response = await http.delete(Uri.parse(url));
     if (response.statusCode >= 400) {
-      _items.insert(existingIndex, existingProduct);
+      localItems.insert(existingIndex, existingProduct);
       notifyListeners();
       throw HttpExceptions(message: "Couldn't delete this product");
     }
@@ -117,8 +123,8 @@ class ProductsProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetData() async {
-    const url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products.json";
+    final url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products.json?auth=$authToken";
     try {
       final response = await http.get(Uri.parse(url));
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
@@ -131,10 +137,9 @@ class ProductsProvider with ChangeNotifier {
             price: prodData["price"],
             imageUrl: prodData["imageUrl"],
             description: prodData["description"],
-          isFavourite: prodData["isFavourite"]
-        ));
+            isFavourite: prodData["isFavourite"]));
       });
-      _items = loadedProducts;
+      localItems = loadedProducts;
       notifyListeners();
     } catch (error) {
       rethrow;

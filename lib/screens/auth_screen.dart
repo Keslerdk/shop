@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop/models/http_exceptions.dart';
 import 'package:shop/provider/auth.dart';
+import 'package:shop/screens/products_overview_screen.dart';
 
 enum AuthMode { signup, login }
 
@@ -120,6 +121,7 @@ class _AuthCardState extends State<AuthCard> {
         await Provider.of<Auth>(context, listen: false)
             .signup(_authData["email"]!, _authData["password"]!);
       }
+      Navigator.of(context).pushReplacementNamed(ProductOverviewScreen.routeName);
     } on HttpExceptions catch (_) {
       String errorMessage = "Authenticate failed";
       _showErrorDialog(errorMessage);

@@ -5,9 +5,22 @@ import 'package:http/http.dart' as http;
 import 'package:shop/models/http_exceptions.dart';
 
 class Auth with ChangeNotifier {
-  late String _token;
-  late DateTime _expiryDate;
-  late String _userId;
+  String? _token = null;
+  DateTime? _expiryDate = null;
+  String? _userId = null;
+
+  bool get isAuth {
+    return token != null;
+  }
+
+  String? get token {
+    if (_token != null &&
+        _expiryDate != null &&
+        _expiryDate!.isAfter(DateTime.now())) {
+      return _token!;
+    }
+    return null;
+  }
 
   Future<void> signup(String email, String password) async {
     return _authenticate(email, password, "signUp");
@@ -24,14 +37,23 @@ class Auth with ChangeNotifier {
 
     try {
       final response = await http.post(Uri.parse(url),
-          body: json.encode(
-              {"email": email, "password": password, "returnSecureToken": true}));
+          body: json.encode({
+            "email": email,
+            "password": password,
+            "returnSecureToken": true
+          }));
       final responseData = json.decode(response.body) as Map<String, dynamic>;
       if (responseData["error"] != null) {
         throw HttpExceptions(message: responseData["error"]["message"]);
       }
+      _token = responseData["idToken"];
+      _userId = responseData["localId"];
+      _expiryDate = DateTime.now()
+          .add(Duration(seconds: int.parse(responseData["expiresIn"])));
+      notifyListeners();
       print(response.body);
     } catch (error) {
+      print(error);
       rethrow;
     }
   }

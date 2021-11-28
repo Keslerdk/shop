@@ -22,25 +22,43 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(providers: [
-      ChangeNotifierProvider.value(value: Auth()),
-      ChangeNotifierProvider.value(value: ProductsProvider()),
-      ChangeNotifierProvider.value(value: Cart()), 
-      ChangeNotifierProvider.value(value: Orders())
-    ], child: MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-          colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.purple)
-              .copyWith(secondary: Colors.deepOrange),
-          fontFamily: 'Lato'),
-      home: const AuthScreen(),
-      routes: {
-        ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
-        CartScreen.routeName: (ctx) => const CartScreen(),
-        OrderScreen.routeName: (ctx) =>  const OrderScreen(),
-        UserProductsScreen.routeName: (ctx) => const UserProductsScreen(),
-        EditProductScreen.routeName: (ctx) => const EditProductScreen()
-      },
-    ),);
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: Auth()),
+        ChangeNotifierProxyProvider<Auth, ProductsProvider>(
+            create: (_) => ProductsProvider(),
+            update: (ctx, auth, previousProducts) => ProductsProvider.update(
+                authToken: auth.token,
+                localItems:
+                    previousProducts == null ? [] : previousProducts.items)),
+        ChangeNotifierProvider.value(value: Cart()),
+        ChangeNotifierProxyProvider<Auth, Orders>(
+            create: (_) => Orders(),
+            update: (ctx, auth, previousOrders) => Orders.update(
+                authToken: auth.token,
+                localOrders:
+                    previousOrders == null ? [] : previousOrders.orders))
+      ],
+      child: Consumer<Auth>(
+        builder: (ctx, auth, _) => MaterialApp(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+              colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.purple)
+                  .copyWith(secondary: Colors.deepOrange),
+              fontFamily: 'Lato'),
+          home:
+              auth.isAuth ? const ProductOverviewScreen() : const AuthScreen(),
+          routes: {
+            ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
+            CartScreen.routeName: (ctx) => const CartScreen(),
+            OrderScreen.routeName: (ctx) => const OrderScreen(),
+            UserProductsScreen.routeName: (ctx) => const UserProductsScreen(),
+            EditProductScreen.routeName: (ctx) => const EditProductScreen(),
+            ProductOverviewScreen.routeName: (ctx) =>
+                const ProductOverviewScreen(),
+          },
+        ),
+      ),
+    );
   }
 }

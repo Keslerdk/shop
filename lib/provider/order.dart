@@ -19,15 +19,22 @@ class OrderItem {
 }
 
 class Orders with ChangeNotifier {
-  List<OrderItem> _orders = [];
+  List<OrderItem> localOrders = [];
+  String? authToken;
+
+
+  Orders.update({required this.authToken, required this.localOrders});
+
+
+  Orders();
 
   List<OrderItem> get orders {
-    return [..._orders];
+    return [...localOrders];
   }
 
   Future<void> addOrder(List<CartItem> cartProduct, double total) async {
-    const url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json";
+    final url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json?auth=$authToken";
     final timaeStamp = DateTime.now();
     try {
       final response = await http.post(Uri.parse(url),
@@ -44,7 +51,7 @@ class Orders with ChangeNotifier {
                 .toList()
           }));
 
-      _orders.insert(
+      localOrders.insert(
           0,
           OrderItem(
               id: json.decode((response.body))['name'],
@@ -56,8 +63,8 @@ class Orders with ChangeNotifier {
   }
 
   Future<void> fetchAndSetOrders() async {
-    const url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json";
+    final url =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json?auth=$authToken";
     try {
       final response = await http.get(Uri.parse(url));
       final List<OrderItem> loadedOrders = [];
@@ -78,7 +85,7 @@ class Orders with ChangeNotifier {
           id: orderId,
         ));
       });
-      _orders = loadedOrders;
+      localOrders = loadedOrders;
       notifyListeners();
     } catch (error) {
     }
