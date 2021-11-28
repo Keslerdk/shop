@@ -11,12 +11,12 @@ class UserProductsScreen extends StatelessWidget {
   const UserProductsScreen({Key? key}) : super(key: key);
 
   Future<void> _refreshProduct(BuildContext context) async {
-    await Provider.of<ProductsProvider>(context, listen: false).fetchAndSetData();
+    await Provider.of<ProductsProvider>(context, listen: false).fetchAndSetData(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final products = Provider.of<ProductsProvider>(context).items;
+    // final products = Provider.of<ProductsProvider>(context).items;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Your Products"),
@@ -28,26 +28,37 @@ class UserProductsScreen extends StatelessWidget {
         ],
       ),
       drawer: const AppDrawer(),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshProduct(context),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ListView.builder(
-            itemBuilder: (context, index) {
-              return Column(
-                children: [
-                  UserProductItem(
-                    title: products[index].title,
-                    imgUrl: products[index].imageUrl,
-                    id: products[index].id,
+      body: FutureBuilder(
+        future: _refreshProduct(context),
+        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+          if (snapshot.connectionState==ConnectionState.done) {
+            return RefreshIndicator(
+              onRefresh: () => _refreshProduct(context),
+              child: Consumer<ProductsProvider>(
+                builder: (BuildContext context, products, _) { return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: ListView.builder(
+                    itemBuilder: (context, index) {
+                      return Column(
+                        children: [
+                          UserProductItem(
+                            title: products.items[index].title,
+                            imgUrl: products.items[index].imageUrl,
+                            id: products.items[index].id,
+                          ),
+                          const Divider(),
+                        ],
+                      );
+                    },
+                    itemCount: products.items.length,
                   ),
-                  const Divider(),
-                ],
-              );
-            },
-            itemCount: products.length,
-          ),
-        ),
+                ); },
+              ),
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator(),);
+          }
+        },
       ),
     );
   }

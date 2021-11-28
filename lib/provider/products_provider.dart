@@ -41,8 +41,12 @@ class ProductsProvider with ChangeNotifier {
   ];
 
   String? authToken;
+  String? userId;
 
-  ProductsProvider.update({required this.localItems, required this.authToken});
+  ProductsProvider.update(
+      {required this.localItems,
+      required this.authToken,
+      required this.userId});
 
   ProductsProvider();
 
@@ -70,7 +74,7 @@ class ProductsProvider with ChangeNotifier {
               "price": product.price,
               "description": product.description,
               "imageUrl": product.imageUrl,
-              // "isFavourite": product.isFavourite
+              "creatorId": userId,
             }))
         .then((response) {
       final newProduct = Product(
@@ -122,22 +126,32 @@ class ProductsProvider with ChangeNotifier {
     existingProduct = null;
   }
 
-  Future<void> fetchAndSetData() async {
+  Future<void> fetchAndSetData([bool filterByUser = false]) async {
+    final filterString =
+        filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : "";
     final url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products.json?auth=$authToken";
+        'https://flutter-lesson-6e435-default-rtdb.firebaseio.com/products.json?auth=$authToken&$filterString';
+    final url2 =
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/userFavourites/$userId.json?auth=$authToken";
     try {
       final response = await http.get(Uri.parse(url));
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
+
+      final favouriteResponse = await http.get(Uri.parse(url2));
+      final favouriteData =
+          json.decode(favouriteResponse.body) as Map<String, dynamic>;
       if (extractedData.isEmpty) return;
       List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
         loadedProducts.add(Product(
-            id: prodId,
-            title: prodData["title"],
-            price: prodData["price"],
-            imageUrl: prodData["imageUrl"],
-            description: prodData["description"],
-            isFavourite: prodData["isFavourite"]));
+          id: prodId,
+          title: prodData["title"],
+          price: prodData["price"],
+          imageUrl: prodData["imageUrl"],
+          description: prodData["description"],
+          isFavourite:
+              favouriteData == null ? false : favouriteData[prodId] ?? false,
+        ));
       });
       localItems = loadedProducts;
       notifyListeners();
