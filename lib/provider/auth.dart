@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shop/models/http_exceptions.dart';
 
 class Auth with ChangeNotifier {
@@ -58,27 +59,48 @@ class Auth with ChangeNotifier {
           .add(Duration(seconds: int.parse(responseData["expiresIn"])));
       _autoLogout();
       notifyListeners();
-      print(response.body);
+      final prefs = await SharedPreferences.getInstance();
+      final userData = json.encode({
+        "token": _token,
+        "userId": _userId,
+        "expiryDate": _expiryDate!.toIso8601String()
+      });
+      prefs.setString("userData", userData);
     } catch (error) {
-      print(error);
       rethrow;
     }
   }
 
-  void logout() {
-    _userId=null;
-    _expiryDate=null;
+  Future<void> logout() async {
+    _userId = null;
+    _expiryDate = null;
     _token = null;
-    if (_authTimer!=null) {
+    if (_authTimer != null) {
       _authTimer!.cancel();
       _authTimer = null;
     }
     notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.clear();
   }
 
   void _autoLogout() {
-    if (_authTimer!=null) _authTimer!.cancel();
+    if (_authTimer != null) _authTimer!.cancel();
     final timeToExpire = _expiryDate!.difference(DateTime.now()).inSeconds;
     _authTimer = Timer(Duration(seconds: timeToExpire), logout);
+  }
+
+  Future<bool> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey("userData")) return false;
+    final extractedUserData = json.decode(prefs.getString("userData")!) as Map<String, dynamic>;
+    final expiryDate = DateTime.parse(extractedUserData["expiryDate"]);
+    if (expiryDate.isBefore(DateTime.now())) return false;
+    _token = extractedUserData["token"];
+    _expiryDate = expiryDate;
+    _userId = extractedUserData["userId"];
+    notifyListeners();
+    _autoLogout();
+    return true;
   }
 }

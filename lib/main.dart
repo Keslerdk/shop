@@ -10,6 +10,7 @@ import 'package:shop/screens/edit_product_screen.dart';
 import 'package:shop/screens/order_screen.dart';
 import 'package:shop/screens/product_detail_screen.dart';
 import 'package:shop/screens/products_overview_screen.dart';
+import 'package:shop/screens/splash_screen.dart';
 import 'package:shop/screens/user_products_screen.dart';
 
 void main() {
@@ -48,8 +49,22 @@ class MyApp extends StatelessWidget {
               colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.purple)
                   .copyWith(secondary: Colors.deepOrange),
               fontFamily: 'Lato'),
-          home:
-              auth.isAuth ? const ProductOverviewScreen() : const AuthScreen(),
+          home: auth.isAuth
+              ? const ProductOverviewScreen()
+              : FutureBuilder(
+                  future: auth.tryAutoLogin(),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.data) {
+                        return const ProductOverviewScreen();
+                      } else {
+                        return const AuthScreen();
+                      }
+                    }
+                    return const SplashScreen();
+                  },
+                ),
           routes: {
             ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
             CartScreen.routeName: (ctx) => const CartScreen(),
