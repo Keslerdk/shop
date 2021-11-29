@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
 import 'package:shop/provider/cart.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,10 +20,12 @@ class OrderItem {
 class Orders with ChangeNotifier {
   List<OrderItem> localOrders = [];
   String? authToken;
+  String? userId;
 
-
-  Orders.update({required this.authToken, required this.localOrders});
-
+  Orders.update(
+      {required this.authToken,
+      required this.localOrders,
+      required this.userId});
 
   Orders();
 
@@ -34,7 +35,7 @@ class Orders with ChangeNotifier {
 
   Future<void> addOrder(List<CartItem> cartProduct, double total) async {
     final url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json?auth=$authToken";
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken";
     final timaeStamp = DateTime.now();
     try {
       final response = await http.post(Uri.parse(url),
@@ -64,7 +65,7 @@ class Orders with ChangeNotifier {
 
   Future<void> fetchAndSetOrders() async {
     final url =
-        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders.json?auth=$authToken";
+        "https://flutter-lesson-6e435-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken";
     try {
       final response = await http.get(Uri.parse(url));
       final List<OrderItem> loadedOrders = [];
@@ -72,22 +73,23 @@ class Orders with ChangeNotifier {
           json.decode(response.body) as Map<String, dynamic>;
       if (extractedOrders.isEmpty) return;
       extractedOrders.forEach((orderId, orderData) {
-        loadedOrders.insert(0, OrderItem(
-          amount: orderData["amount"],
-          dateTime: DateTime.parse(orderData["dateTime"]),
-          products: (orderData["products"] as List<dynamic>)
-              .map((cp) => CartItem(
-                  price: cp["price"],
-                  id: cp["id"],
-                  quantity: cp["quantity"],
-                  title: cp["title"]))
-              .toList(),
-          id: orderId,
-        ));
+        loadedOrders.insert(
+            0,
+            OrderItem(
+              amount: orderData["amount"],
+              dateTime: DateTime.parse(orderData["dateTime"]),
+              products: (orderData["products"] as List<dynamic>)
+                  .map((cp) => CartItem(
+                      price: cp["price"],
+                      id: cp["id"],
+                      quantity: cp["quantity"],
+                      title: cp["title"]))
+                  .toList(),
+              id: orderId,
+            ));
       });
       localOrders = loadedOrders;
       notifyListeners();
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 }

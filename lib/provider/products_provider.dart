@@ -139,7 +139,7 @@ class ProductsProvider with ChangeNotifier {
 
       final favouriteResponse = await http.get(Uri.parse(url2));
       final favouriteData =
-          json.decode(favouriteResponse.body) as Map<String, dynamic>;
+          json.decode(favouriteResponse.body) as Map<String, dynamic>?;
       if (extractedData.isEmpty) return;
       List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {

@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shop/provider/auth.dart';
 import 'package:shop/screens/order_screen.dart';
 import 'package:shop/screens/user_products_screen.dart';
 
@@ -40,6 +42,15 @@ class AppDrawer extends StatelessWidget {
                   leading: const Icon(Icons.edit),
                   onTap: () => Navigator.of(context)
                       .pushReplacementNamed(UserProductsScreen.routeName),
+                ),
+                ListTile(
+                  title: const Text("logout"),
+                  leading: const Icon(Icons.logout),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Provider.of<Auth>(context, listen: false).logout();
+                    Navigator.pushReplacementNamed(context, "/");
+                  },
                 )
               ],
             ))

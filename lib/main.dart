@@ -38,7 +38,8 @@ class MyApp extends StatelessWidget {
             update: (ctx, auth, previousOrders) => Orders.update(
                 authToken: auth.token,
                 localOrders:
-                    previousOrders == null ? [] : previousOrders.orders))
+                    previousOrders == null ? [] : previousOrders.orders,
+                userId: auth.userId))
       ],
       child: Consumer<Auth>(
         builder: (ctx, auth, _) => MaterialApp(
