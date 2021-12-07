@@ -16,57 +16,67 @@ class ProductItem extends StatelessWidget {
     final authData = Provider.of<Auth>(context);
     final cart = Provider.of<Cart>(context, listen: false);
     return Consumer<Product>(
-      builder: (context, product, child) => ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushNamed(ProductDetailScreen.routeName,
-                arguments: product.id);
-          },
-          child: GridTile(
-            child: Image.network(
-              product.imageUrl,
-              fit: BoxFit.cover,
-            ),
-            footer: GridTileBar(
-              backgroundColor: Colors.black54,
-              leading: IconButton(
-                icon: Icon(
-                  (product.isFavourite)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                onPressed: () => product.toggleFavouriteStatus(
-                    authData.token!, authData.userId!),
-              ),
-              title: Text(
-                product.title,
-                textAlign: TextAlign.center,
-              ),
-              trailing: IconButton(
-                onPressed: () {
-                  cart.addItem(product.id, product.price, product.title);
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: const Text(
-                      "Added item to a cart!",
+      builder: (context, product, child) =>
+          ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pushNamed(ProductDetailScreen
+                        .routeName,
+                        arguments: product.id);
+                  },
+                  child: GridTile(
+                    child: FadeInImage(
+                        image: NetworkImage(product.imageUrl),
+                        placeholder: const AssetImage("assets/images/t_shirt.png")),
+                    footer: GridTileBar(
+                      backgroundColor: Colors.black54,
+                      leading: IconButton(
+                        icon: Icon(
+                          (product.isFavourite)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: Theme
+                              .of(context)
+                              .colorScheme
+                              .secondary,
+                        ),
+                        onPressed: () =>
+                            product.toggleFavouriteStatus(
+                                authData.token!, authData.userId!),
+                      ),
+                      title: Text(
+                        product.title,
+                        textAlign: TextAlign.center,
+                      ),
+                      trailing: IconButton(
+                        onPressed: () {
+                          cart.addItem(
+                              product.id, product.price, product.title);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: const Text(
+                              "Added item to a cart!",
+                            ),
+                            duration: const Duration(seconds: 2),
+                            action: SnackBarAction(
+                                label: "UNDO",
+                                onPressed: () =>
+                                    cart.removeSingleItem(product.id)),
+                          ));
+                        },
+                        icon: Icon(
+                          Icons.shopping_cart,
+                          color: Theme
+                              .of(context)
+                              .colorScheme
+                              .secondary,
+                        ),
+                      ),
                     ),
-                    duration: const Duration(seconds: 2),
-                    action: SnackBarAction(
-                        label: "UNDO",
-                        onPressed: () => cart.removeSingleItem(product.id)),
-                  ));
-                },
-                icon: Icon(
-                  Icons.shopping_cart,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-            ),
+                  )
+              )
           ),
-        ),
-      ),
     );
   }
 }
