@@ -13,50 +13,58 @@ class OrderTile extends StatefulWidget {
   State<OrderTile> createState() => _OrderTileState();
 }
 
-class _OrderTileState extends State<OrderTile> {
+class _OrderTileState extends State<OrderTile>
+    with SingleTickerProviderStateMixin {
   bool _expanded = false;
-
+  
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Column(
-        children: [
-          ListTile(
-            title: Text("\$${widget.orderItem.amount}"),
-            subtitle: Text(DateFormat("dd.MM.yyyy hh:mm")
-                .format(widget.orderItem.dateTime)),
-            trailing: IconButton(
-              icon: const Icon(
-                Icons.expand_more,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        height: _expanded
+            ? min(widget.orderItem.products.length * 20 + 10, 180) + 80
+            : 72,
+        child: Column(
+          children: [
+            ListTile(
+              title: Text("\$${widget.orderItem.amount}"),
+              subtitle: Text(DateFormat("dd.MM.yyyy hh:mm")
+                  .format(widget.orderItem.dateTime)),
+              trailing: IconButton(
+                icon: const Icon(
+                  Icons.expand_more,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _expanded = !_expanded;
+                  });
+                },
               ),
-              onPressed: () {
-                setState(() {
-                  _expanded = !_expanded;
-                });
-              },
             ),
-          ),
-          if (_expanded)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              height: min(widget.orderItem.products.length * 20 + 10, 180),
-              child: ListView(
-                children: [
-                  ...widget.orderItem.products.map((prod) => Row(
-                        children: [
-                          Text(
-                            prod.title,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          Text("${prod.quantity}x / ${prod.price}")
-                        ],
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      ))
-                ],
-              ),
-            )
-        ],
+              AnimatedContainer(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                height: _expanded? min(widget.orderItem.products.length * 20 + 10, 180)+8 : 0,
+                duration: const Duration(milliseconds: 500),
+                child: ListView(
+                  children: [
+                    ...widget.orderItem.products.map((prod) => Row(
+                          children: [
+                            Text(
+                              prod.title,
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text("${prod.quantity}x / ${prod.price}")
+                          ],
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        ))
+                  ],
+                ),
+              )
+          ],
+        ),
       ),
     );
   }

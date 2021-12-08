@@ -26,9 +26,12 @@ class ProductItem extends StatelessWidget {
                         arguments: product.id);
                   },
                   child: GridTile(
-                    child: FadeInImage(
-                        image: NetworkImage(product.imageUrl),
-                        placeholder: const AssetImage("assets/images/t_shirt.png")),
+                    child: Hero(
+                      tag: product.id,
+                      child: FadeInImage(
+                          image: NetworkImage(product.imageUrl),
+                          placeholder: const AssetImage("assets/images/t_shirt.png")),
+                    ),
                     footer: GridTileBar(
                       backgroundColor: Colors.black54,
                       leading: IconButton(
